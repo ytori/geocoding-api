@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: geocoding
+
+app:
+  prefecture:
+    geojson-file: "/data/prefecture.geojson.gz"
+    attribute-name: "N03_001"
+    bufferDistance: 0.0005
