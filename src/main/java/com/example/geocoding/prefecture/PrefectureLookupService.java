@@ -35,24 +35,22 @@ public class PrefectureLookupService {
     private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public PrefectureLookupService(@NonNull InputStream geojson, @NonNull String attributeName, @Nullable Double bufferDistance) throws Exception {
-        var reader = new InputStreamReader(
-                geojson, StandardCharsets.UTF_8
-        );
+        try(var reader = new InputStreamReader(geojson, StandardCharsets.UTF_8)) {
 
-        var featureJson = new FeatureJSON();
+            var featureJson = new FeatureJSON();
+            var collection = (SimpleFeatureCollection) featureJson.readFeatureCollection(reader);
 
-        var collection = (SimpleFeatureCollection) featureJson.readFeatureCollection(reader);
-
-        try (SimpleFeatureIterator it = collection.features()) {
-            while (it.hasNext()) {
-                var feature = it.next();
-                var name = (String) feature.getAttribute(attributeName);
-                var geom = (Geometry) feature.getDefaultGeometry();
-                var geomToUse = bufferDistance != null ? geom.buffer(bufferDistance) : geom;
-                PrefecturePolygon pp = new PrefecturePolygon(name, geomToUse);
-                index.insert(pp.envelope, pp);
+            try (SimpleFeatureIterator it = collection.features()) {
+                while (it.hasNext()) {
+                    var feature = it.next();
+                    var name = (String) feature.getAttribute(attributeName);
+                    var geom = (Geometry) feature.getDefaultGeometry();
+                    var geomToUse = bufferDistance != null ? geom.buffer(bufferDistance) : geom;
+                    var pp = new PrefecturePolygon(name, geomToUse);
+                    index.insert(pp.envelope, pp);
+                }
+                index.build();
             }
-            index.build();
         }
     }
 
